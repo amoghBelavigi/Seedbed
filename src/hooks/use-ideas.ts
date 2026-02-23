@@ -17,6 +17,8 @@ function rowToIdea(row: Record<string, unknown>): Idea {
     githubRepo: (row.github_repo as string) || undefined,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
+    // Research report is stored in localStorage, will be merged separately
+    researchReport: row.research_report as Idea["researchReport"] || undefined,
   };
 }
 
@@ -41,6 +43,13 @@ export function useIdeas() {
 
   // Fetch all ideas from Supabase on mount
   const fetchIdeas = useCallback(async () => {
+    // Load cached ideas to preserve research reports
+    let cachedIdeas: Idea[] = [];
+    try {
+      const cached = window.localStorage.getItem("seedbed-ideas");
+      if (cached) cachedIdeas = JSON.parse(cached);
+    } catch {}
+
     const { data, error } = await supabase
       .from("ideas")
       .select("*")
@@ -48,17 +57,26 @@ export function useIdeas() {
 
     if (error) {
       console.error("Supabase fetch error:", error.message);
-      // Fallback: try loading from localStorage cache
-      try {
-        const cached = window.localStorage.getItem("seedbed-ideas");
-        if (cached) setIdeas(JSON.parse(cached));
-      } catch {}
+      // Fallback: use localStorage cache
+      if (cachedIdeas.length > 0) {
+        setIdeas(cachedIdeas);
+      }
     } else if (data) {
       const mapped = data.map(rowToIdea);
-      setIdeas(mapped);
+
+      // Merge research reports from localStorage (since Supabase might not have them)
+      const mergedIdeas = mapped.map((idea) => {
+        const cachedIdea = cachedIdeas.find((c) => c.id === idea.id);
+        if (cachedIdea?.researchReport && !idea.researchReport) {
+          return { ...idea, researchReport: cachedIdea.researchReport };
+        }
+        return idea;
+      });
+
+      setIdeas(mergedIdeas);
       // Cache in localStorage for offline fallback
       try {
-        window.localStorage.setItem("seedbed-ideas", JSON.stringify(mapped));
+        window.localStorage.setItem("seedbed-ideas", JSON.stringify(mergedIdeas));
       } catch {}
     }
     setIsLoading(false);
@@ -78,16 +96,19 @@ export function useIdeas() {
       id: newId,
       createdAt: now,
       updatedAt: now,
+      // Include research report if available
+      researchReport: idea.researchReport,
     };
 
     // Optimistic update: show it immediately in the UI
     setIdeas((prev) => {
       const updated = [newIdea, ...prev];
+      // Save to localStorage (includes research report)
       try { window.localStorage.setItem("seedbed-ideas", JSON.stringify(updated)); } catch {}
       return updated;
     });
 
-    // Persist to Supabase
+    // Persist to Supabase (without research report for now - stored in localStorage)
     const { error } = await supabase.from("ideas").insert({
       id: newId,
       title: idea.title,
