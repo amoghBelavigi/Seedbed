@@ -1,4 +1,4 @@
-# Seedbed
+   # Seedbed
 
 **Seedbed** is a modern idea management platform that helps you organize, research, and develop your project ideas. It features AI-powered research capabilities that analyze your ideas and provide market insights, competitor analysis, and actionable prompts to get started building.
 
@@ -13,13 +13,17 @@
 - Sorting by priority, date, or title
 
 ### AI-Powered Research
+- **Real web search grounding** via Serper API (Google Search) — no hallucinated URLs or fabricated data
 - Automated market research using DeepSeek AI via Hugging Face
+- 3 parallel search queries (general, competitors, market/industry) feed real context to the AI
+- Post-processing URL validation — sources are strictly verified against search results
 - Similar project discovery with competitor analysis
 - Feasibility analysis including market size and technical complexity
 - Time to MVP estimation
 - Challenges and opportunities identification
 - Feature enhancement suggestions with priority levels
 - Differentiation strategies
+- Graceful fallback — works without Serper key (LLM-only mode, no sources)
 - Research report with PDF export
 
 ### AI Prompt Generator
@@ -52,7 +56,8 @@
 - **Styling**: Tailwind CSS 4
 - **UI Components**: shadcn/ui + Radix UI
 - **Database**: Supabase (PostgreSQL)
-- **AI**: Hugging Face API with DeepSeek model
+- **AI**: Hugging Face API with DeepSeek V3 model
+- **Web Search**: Serper API (Google Search) for real-time data grounding
 - **Drag and Drop**: @hello-pangea/dnd
 - **Markdown**: react-markdown with rehype-raw
 - **PDF Export**: jsPDF
@@ -65,6 +70,7 @@
 - npm or yarn package manager
 - A Supabase account
 - A Hugging Face API key
+- A Serper API key (optional — research works without it but won't include verified sources)
 
 ## Getting Started
 
@@ -89,6 +95,7 @@ Create a `.env.local` file in the root directory:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 HUGGINGFACE_API_KEY=your_huggingface_api_key
+SERPER_API_KEY=your_serper_api_key
 ```
 
 #### Getting API Keys
@@ -103,6 +110,11 @@ HUGGINGFACE_API_KEY=your_huggingface_api_key
 1. Go to huggingface.co
 2. Create an account and go to Settings > Access Tokens
 3. Create a new token with read permissions
+
+**Serper (optional):**
+1. Go to serper.dev
+2. Create an account (free tier includes 2,500 searches)
+3. Copy your API key from the dashboard
 
 ### 4. Database Setup
 
@@ -184,6 +196,7 @@ Seedbed/
 │   ├── hooks/
 │   │   └── use-ideas.ts
 │   └── lib/
+│       ├── serper.ts              # Serper web search client
 │       ├── types.ts
 │       ├── constants.ts
 │       └── utils.ts
@@ -210,6 +223,7 @@ npm run lint     # Run linter
    - NEXT_PUBLIC_SUPABASE_URL
    - NEXT_PUBLIC_SUPABASE_ANON_KEY
    - HUGGINGFACE_API_KEY
+   - SERPER_API_KEY (optional)
 4. Deploy
 
 ## Troubleshooting
@@ -217,7 +231,8 @@ npm run lint     # Run linter
 ### API Errors
 - Verify your Hugging Face API key is valid
 - Check that you have sufficient API quota
-- The app uses the DeepSeek model via Hugging Face router
+- The app uses the DeepSeek V3 model via Hugging Face router
+- If research returns empty sources, check that your Serper API key is set correctly
 
 ### Database Issues
 - Verify Supabase URL and key in .env.local
@@ -237,5 +252,6 @@ This project is private and proprietary.
 - Next.js
 - Supabase
 - Hugging Face
+- Serper API
 - shadcn/ui
 - Tailwind CSS
