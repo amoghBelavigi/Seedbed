@@ -47,7 +47,6 @@ export interface Idea {
   description: string;
   priority: Priority;
   status: Status;
-  githubRepo?: string;
   createdAt: string;
   updatedAt: string;
   researchReport?: ResearchReport;

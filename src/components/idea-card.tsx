@@ -22,7 +22,6 @@ import {
   Lightbulb,
   ArrowRightLeft,
   Check,
-  Github,
 } from "lucide-react";
 import { MarkdownContent } from "@/components/markdown-content";
 
@@ -138,19 +137,6 @@ export function IdeaCard({ idea, onEdit, onDelete, onStatusChange }: IdeaCardPro
         </div>
       )}
       {!idea.description && <div className="mb-4 flex-1" />}
-
-      {idea.githubRepo && (
-        <a
-          href={idea.githubRepo}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          className="mb-3 flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Github className="h-3.5 w-3.5" />
-          <span className="truncate">{idea.githubRepo.replace(/^https?:\/\/(www\.)?github\.com\//, "")}</span>
-        </a>
-      )}
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5">

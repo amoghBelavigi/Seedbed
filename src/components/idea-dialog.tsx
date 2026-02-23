@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MarkdownContent } from "@/components/markdown-content";
-import { Github, Eye, PenLine, Bold, Italic, Underline, Heading2, List, Code } from "lucide-react";
+import { Eye, PenLine, Bold, Italic, Heading2, List, Code } from "lucide-react";
 import { ResearchReport as ResearchReportType } from "@/lib/types";
 import { ResearchReport } from "@/components/research-report";
 import { ResearchSkeleton } from "@/components/research-skeleton";
@@ -57,7 +57,6 @@ export function IdeaDialog({
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
   const [status, setStatus] = useState<"draft" | "in-progress" | "completed">("draft");
-  const [githubRepo, setGithubRepo] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isResearching, setIsResearching] = useState(false);
   const [researchProgress, setResearchProgress] = useState("");
@@ -125,7 +124,6 @@ export function IdeaDialog({
       setDescription(editingIdea.description);
       setPriority(editingIdea.priority);
       setStatus(editingIdea.status);
-      setGithubRepo(editingIdea.githubRepo ?? "");
       // Load existing research report if available
       if (editingIdea.researchReport) {
         setResearchReport(editingIdea.researchReport);
@@ -139,7 +137,6 @@ export function IdeaDialog({
       setDescription("");
       setPriority("medium");
       setStatus("draft");
-      setGithubRepo("");
       setResearchReport(null);
       setShowResearchTab(false);
     }
@@ -219,7 +216,6 @@ export function IdeaDialog({
       description: description.trim(),
       priority,
       status,
-      githubRepo: githubRepo.trim() || undefined,
       researchReport: researchReport || undefined,
     });
     onOpenChange(false);
@@ -403,21 +399,7 @@ export function IdeaDialog({
                 </div>
               </div>
 
-              {/* GitHub Repo */}
-              <div className="space-y-2">
-                <label htmlFor="github" className="text-sm font-medium flex items-center gap-2">
-                  <Github className="h-4 w-4" />
-                  GitHub Repository (Optional)
-                </label>
-                <Input
-                  id="github"
-                  placeholder="https://github.com/username/repo"
-                  value={githubRepo}
-                  onChange={(e) => setGithubRepo(e.target.value)}
-                  className="w-full"
-                />
               </div>
-            </div>
 
             {/* Research Button */}
             <div className="flex flex-col items-end gap-2">

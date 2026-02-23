@@ -14,7 +14,6 @@ function rowToIdea(row: Record<string, unknown>): Idea {
     description: (row.description as string) ?? "",
     priority: row.priority as Idea["priority"],
     status: row.status as Idea["status"],
-    githubRepo: (row.github_repo as string) || undefined,
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     // Research report is stored in localStorage, will be merged separately
@@ -32,7 +31,6 @@ function ideaToRow(idea: Partial<Idea> & { id?: string }) {
   if (idea.description !== undefined) row.description = idea.description;
   if (idea.priority !== undefined) row.priority = idea.priority;
   if (idea.status !== undefined) row.status = idea.status;
-  if ("githubRepo" in idea) row.github_repo = idea.githubRepo ?? null;
   if (idea.updatedAt !== undefined) row.updated_at = idea.updatedAt;
   return row;
 }
@@ -115,7 +113,6 @@ export function useIdeas() {
       description: idea.description,
       priority: idea.priority,
       status: idea.status,
-      github_repo: idea.githubRepo ?? null,
       created_at: now,
       updated_at: now,
     });

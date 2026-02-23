@@ -58,7 +58,9 @@ Thumbs.db
 
 # Cursor AI
 .cursor/
-agent-transcripts/
+
+# Claude AI
+.claude/
 
 # Temporary files
 *.tmp
