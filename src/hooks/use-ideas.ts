@@ -12,12 +12,12 @@ function rowToIdea(row: Record<string, unknown>): Idea {
     id: row.id as string,
     title: row.title as string,
     description: (row.description as string) ?? "",
-    priority: row.priority as Idea["priority"],
     status: row.status as Idea["status"],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
-    // Research report is stored in localStorage, will be merged separately
-    researchReport: row.research_report as Idea["researchReport"] || undefined,
+    researchReport: (row.research_report as Idea["researchReport"]) || undefined,
+    realityCheck: (row.reality_check as Idea["realityCheck"]) || undefined,
+    prd: (row.prd as string) || undefined,
   };
 }
 
@@ -29,10 +29,21 @@ function ideaToRow(idea: Partial<Idea> & { id?: string }) {
   if (idea.id !== undefined) row.id = idea.id;
   if (idea.title !== undefined) row.title = idea.title;
   if (idea.description !== undefined) row.description = idea.description;
-  if (idea.priority !== undefined) row.priority = idea.priority;
   if (idea.status !== undefined) row.status = idea.status;
   if (idea.updatedAt !== undefined) row.updated_at = idea.updatedAt;
+  if (idea.researchReport !== undefined) row.research_report = idea.researchReport ?? null;
+  if (idea.realityCheck !== undefined) row.reality_check = idea.realityCheck ?? null;
+  if (idea.prd !== undefined) row.prd = idea.prd ?? null;
   return row;
+}
+
+/**
+ * Save ideas to localStorage as an offline cache.
+ */
+function cacheIdeas(ideas: Idea[]) {
+  try {
+    window.localStorage.setItem("seedbed-ideas", JSON.stringify(ideas));
+  } catch {}
 }
 
 export function useIdeas() {
@@ -41,13 +52,6 @@ export function useIdeas() {
 
   // Fetch all ideas from Supabase on mount
   const fetchIdeas = useCallback(async () => {
-    // Load cached ideas to preserve research reports
-    let cachedIdeas: Idea[] = [];
-    try {
-      const cached = window.localStorage.getItem("seedbed-ideas");
-      if (cached) cachedIdeas = JSON.parse(cached);
-    } catch {}
-
     const { data, error } = await supabase
       .from("ideas")
       .select("*")
@@ -56,26 +60,14 @@ export function useIdeas() {
     if (error) {
       console.error("Supabase fetch error:", error.message);
       // Fallback: use localStorage cache
-      if (cachedIdeas.length > 0) {
-        setIdeas(cachedIdeas);
-      }
+      try {
+        const cached = window.localStorage.getItem("seedbed-ideas");
+        if (cached) setIdeas(JSON.parse(cached));
+      } catch {}
     } else if (data) {
       const mapped = data.map(rowToIdea);
-
-      // Merge research reports from localStorage (since Supabase might not have them)
-      const mergedIdeas = mapped.map((idea) => {
-        const cachedIdea = cachedIdeas.find((c) => c.id === idea.id);
-        if (cachedIdea?.researchReport && !idea.researchReport) {
-          return { ...idea, researchReport: cachedIdea.researchReport };
-        }
-        return idea;
-      });
-
-      setIdeas(mergedIdeas);
-      // Cache in localStorage for offline fallback
-      try {
-        window.localStorage.setItem("seedbed-ideas", JSON.stringify(mergedIdeas));
-      } catch {}
+      setIdeas(mapped);
+      cacheIdeas(mapped);
     }
     setIsLoading(false);
   }, []);
@@ -94,25 +86,24 @@ export function useIdeas() {
       id: newId,
       createdAt: now,
       updatedAt: now,
-      // Include research report if available
-      researchReport: idea.researchReport,
     };
 
-    // Optimistic update: show it immediately in the UI
+    // Optimistic update
     setIdeas((prev) => {
       const updated = [newIdea, ...prev];
-      // Save to localStorage (includes research report)
-      try { window.localStorage.setItem("seedbed-ideas", JSON.stringify(updated)); } catch {}
+      cacheIdeas(updated);
       return updated;
     });
 
-    // Persist to Supabase (without research report for now - stored in localStorage)
+    // Persist everything to Supabase
     const { error } = await supabase.from("ideas").insert({
       id: newId,
       title: idea.title,
       description: idea.description,
-      priority: idea.priority,
       status: idea.status,
+      research_report: idea.researchReport ?? null,
+      reality_check: idea.realityCheck ?? null,
+      prd: idea.prd ?? null,
       created_at: now,
       updated_at: now,
     });
@@ -136,7 +127,7 @@ export function useIdeas() {
       const updated = prev.map((idea) =>
         idea.id === id ? { ...idea, ...fullUpdates } : idea
       );
-      try { window.localStorage.setItem("seedbed-ideas", JSON.stringify(updated)); } catch {}
+      cacheIdeas(updated);
       return updated;
     });
 
@@ -153,13 +144,12 @@ export function useIdeas() {
 
   // DELETE
   const deleteIdea = async (id: string) => {
-    // Save for rollback
     const backup = ideas;
 
     // Optimistic update
     setIdeas((prev) => {
       const updated = prev.filter((idea) => idea.id !== id);
-      try { window.localStorage.setItem("seedbed-ideas", JSON.stringify(updated)); } catch {}
+      cacheIdeas(updated);
       return updated;
     });
 

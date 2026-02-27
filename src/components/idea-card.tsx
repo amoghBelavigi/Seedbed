@@ -1,7 +1,7 @@
 "use client";
 
 import { Idea, Status } from "@/lib/types";
-import { getPriorityConfig, getStatusConfig, STATUSES } from "@/lib/constants";
+import { getStatusConfig, STATUSES } from "@/lib/constants";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,6 @@ interface IdeaCardProps {
 }
 
 export function IdeaCard({ idea, onEdit, onDelete, onStatusChange }: IdeaCardProps) {
-  const priorityConfig = getPriorityConfig(idea.priority);
   const statusConfig = getStatusConfig(idea.status);
 
   const formatDate = (dateStr: string) => {
@@ -49,12 +48,12 @@ export function IdeaCard({ idea, onEdit, onDelete, onStatusChange }: IdeaCardPro
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
 
-  const accentStyles = {
-    low: { bg: "bg-slate-100 dark:bg-slate-800/50", icon: "text-slate-500 dark:text-slate-400" },
-    medium: { bg: "bg-amber-100 dark:bg-amber-900/40", icon: "text-amber-600 dark:text-amber-400" },
-    high: { bg: "bg-rose-100 dark:bg-rose-900/40", icon: "text-rose-600 dark:text-rose-400" },
+  const statusAccent = {
+    "draft": { bg: "bg-zinc-100 dark:bg-zinc-800/50", icon: "text-zinc-500 dark:text-zinc-400" },
+    "in-progress": { bg: "bg-blue-100 dark:bg-blue-900/40", icon: "text-blue-600 dark:text-blue-400" },
+    "completed": { bg: "bg-emerald-100 dark:bg-emerald-900/40", icon: "text-emerald-600 dark:text-emerald-400" },
   };
-  const accent = accentStyles[idea.priority];
+  const accent = statusAccent[idea.status];
 
   return (
     <Card
@@ -139,14 +138,9 @@ export function IdeaCard({ idea, onEdit, onDelete, onStatusChange }: IdeaCardPro
       {!idea.description && <div className="mb-4 flex-1" />}
 
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className={`text-[11px] ${statusConfig.color}`}>
-            {statusConfig.label}
-          </Badge>
-          <Badge variant="outline" className={`text-[11px] ${priorityConfig.color}`}>
-            {priorityConfig.label}
-          </Badge>
-        </div>
+        <Badge variant="outline" className={`text-[11px] ${statusConfig.color}`}>
+          {statusConfig.label}
+        </Badge>
         <span className="text-[11px] text-muted-foreground">
           {formatDate(idea.createdAt)}
         </span>

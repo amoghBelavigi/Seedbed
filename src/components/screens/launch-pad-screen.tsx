@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Idea, Priority, Status } from "@/lib/types";
+import { Idea, Status } from "@/lib/types";
 import { IdeaCard } from "@/components/idea-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,10 +17,7 @@ import {
   Zap,
   ArrowUpDown,
   Search,
-  Flame,
 } from "lucide-react";
-
-const PRIORITY_WEIGHT: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
 interface LaunchPadScreenProps {
   ideas: Idea[];
@@ -39,7 +36,7 @@ export function LaunchPadScreen({
   onNavigate,
   onStatusChange,
 }: LaunchPadScreenProps) {
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "priority" | "title">("priority");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
 
   const inProgressIdeas = useMemo(() => {
     let result = ideas.filter((i) => i.status === "in-progress");
@@ -60,9 +57,6 @@ export function LaunchPadScreen({
       case "oldest":
         result.sort((a, b) => new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
         break;
-      case "priority":
-        result.sort((a, b) => PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority]);
-        break;
       case "title":
         result.sort((a, b) => a.title.localeCompare(b.title));
         break;
@@ -72,7 +66,6 @@ export function LaunchPadScreen({
   }, [ideas, search, sortBy]);
 
   const totalInProgress = ideas.filter((i) => i.status === "in-progress").length;
-  const highPriority = ideas.filter((i) => i.status === "in-progress" && i.priority === "high").length;
 
   return (
     <>
@@ -87,7 +80,7 @@ export function LaunchPadScreen({
       </div>
 
       {/* Mini stats */}
-      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:w-2/3">
+      <div className="mb-6 grid grid-cols-2 gap-3 lg:w-2/3">
         <div className="rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between">
             <p className="text-[13px] font-medium text-muted-foreground">Active</p>
@@ -100,24 +93,12 @@ export function LaunchPadScreen({
         </div>
         <div className="rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-muted-foreground">High Priority</p>
-            <Flame className="h-4 w-4 text-rose-500" />
-          </div>
-          <p className="mt-1 font-[family-name:var(--font-space-grotesk)] text-2xl font-bold">
-            {highPriority}
-          </p>
-          <p className="mt-0.5 text-[12px] font-medium text-rose-600 dark:text-rose-400">
-            {highPriority > 0 ? "Needs attention" : "All clear"}
-          </p>
-        </div>
-        <div className="rounded-xl border bg-card p-4">
-          <div className="flex items-center justify-between">
             <p className="text-[13px] font-medium text-muted-foreground">Focus Tip</p>
             <Rocket className="h-4 w-4 text-violet-500" />
           </div>
           <p className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
-            {highPriority > 0
-              ? "Tackle high-priority items first for maximum impact."
+            {totalInProgress > 0
+              ? "Stay focused — ship one idea before starting the next."
               : "Great focus! Keep the momentum going."}
           </p>
         </div>
@@ -140,7 +121,6 @@ export function LaunchPadScreen({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="priority" className="cursor-pointer text-xs">Priority</SelectItem>
             <SelectItem value="newest" className="cursor-pointer text-xs">Recently Updated</SelectItem>
             <SelectItem value="oldest" className="cursor-pointer text-xs">Oldest First</SelectItem>
             <SelectItem value="title" className="cursor-pointer text-xs">Title A-Z</SelectItem>

@@ -5,7 +5,7 @@ import { ResearchReport as ResearchReportType } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ExternalLink, TrendingUp, AlertCircle, Lightbulb, BookOpen, Download, Loader2, Wand2, Copy, Check } from "lucide-react";
+import { ExternalLink, TrendingUp, AlertCircle, Lightbulb, BookOpen, Download, Loader2, Wand2, Copy, Check, FileText } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { MarkdownContent } from "@/components/markdown-content";
@@ -13,12 +13,14 @@ import { MarkdownContent } from "@/components/markdown-content";
 interface ResearchReportProps {
   report: ResearchReportType;
   ideaTitle?: string;
+  initialPrd?: string;
+  onPrdGenerated?: (prd: string) => void;
 }
 
-export function ResearchReport({ report, ideaTitle }: ResearchReportProps) {
+export function ResearchReport({ report, ideaTitle, initialPrd, onPrdGenerated }: ResearchReportProps) {
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-  const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
-  const [generatedPrompt, setGeneratedPrompt] = useState<string | null>(null);
+  const [isGeneratingPrd, setIsGeneratingPrd] = useState(false);
+  const [generatedPrd, setGeneratedPrd] = useState<string | null>(initialPrd ?? null);
   const [isCopied, setIsCopied] = useState(false);
 
   const handleDownloadPdf = async () => {
@@ -134,8 +136,8 @@ export function ResearchReport({ report, ideaTitle }: ResearchReportProps) {
     }
   };
 
-  const handleGeneratePrompt = async () => {
-    setIsGeneratingPrompt(true);
+  const handleGeneratePrd = async () => {
+    setIsGeneratingPrd(true);
 
     try {
       const response = await fetch("/api/generate-prompt", {
@@ -150,26 +152,27 @@ export function ResearchReport({ report, ideaTitle }: ResearchReportProps) {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.error || "Failed to generate prompt");
+        throw new Error(data.error || "Failed to generate PRD");
       }
 
-      setGeneratedPrompt(data.prompt);
-      toast.success("Prompt generated!");
+      setGeneratedPrd(data.prd);
+      onPrdGenerated?.(data.prd);
+      toast.success("PRD generated!");
     } catch (error) {
-      console.error("Generate prompt error:", error);
-      toast.error("Failed to generate prompt", {
+      console.error("Generate PRD error:", error);
+      toast.error("Failed to generate PRD", {
         description: error instanceof Error ? error.message : "Please try again",
       });
     } finally {
-      setIsGeneratingPrompt(false);
+      setIsGeneratingPrd(false);
     }
   };
 
-  const handleCopyPrompt = async () => {
-    if (!generatedPrompt) return;
+  const handleCopyPrd = async () => {
+    if (!generatedPrd) return;
 
     try {
-      await navigator.clipboard.writeText(generatedPrompt);
+      await navigator.clipboard.writeText(generatedPrd);
       setIsCopied(true);
       toast.success("Copied to clipboard!");
       setTimeout(() => setIsCopied(false), 2000);
@@ -426,28 +429,28 @@ export function ResearchReport({ report, ideaTitle }: ResearchReportProps) {
 
       <Separator className="dark:bg-zinc-700" />
 
-      {/* Generate Prompt Section */}
+      {/* Generate PRD Section */}
       <section
         className="space-y-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
         style={{ animationDelay: "600ms", animationFillMode: "both" }}
       >
         <div className="flex items-center gap-2">
-          <Wand2 className="h-5 w-5 text-primary" />
+          <FileText className="h-5 w-5 text-primary" />
           <h3 className="text-base sm:text-lg font-semibold">Get Started</h3>
         </div>
 
-        {!generatedPrompt ? (
+        {!generatedPrd ? (
           <Card className="p-4 sm:p-6 bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20 border-primary/20">
             <div className="text-center space-y-3">
               <p className="text-sm text-muted-foreground">
-                Ready to build? Generate a prompt you can paste into ChatGPT or Claude to start coding your MVP.
+                Generate a Project Requirements Document (PRD) based on your research findings to kickstart development.
               </p>
               <Button
-                onClick={handleGeneratePrompt}
-                disabled={isGeneratingPrompt}
+                onClick={handleGeneratePrd}
+                disabled={isGeneratingPrd}
                 className="gap-2"
               >
-                {isGeneratingPrompt ? (
+                {isGeneratingPrd ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Generating...
@@ -455,7 +458,7 @@ export function ResearchReport({ report, ideaTitle }: ResearchReportProps) {
                 ) : (
                   <>
                     <Wand2 className="h-4 w-4" />
-                    Generate a prompt to start building
+                    Generate PRD
                   </>
                 )}
               </Button>
@@ -465,11 +468,11 @@ export function ResearchReport({ report, ideaTitle }: ResearchReportProps) {
           <Card className="p-4 bg-card/50 dark:bg-zinc-800/50 border-border/50">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-muted-foreground">Copy this prompt into ChatGPT or Claude:</p>
+                <p className="text-sm font-medium text-muted-foreground">Your Product Requirements Document:</p>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleCopyPrompt}
+                  onClick={handleCopyPrd}
                   className="gap-2 h-8"
                 >
                   {isCopied ? (
@@ -487,17 +490,17 @@ export function ResearchReport({ report, ideaTitle }: ResearchReportProps) {
               </div>
               <div className="bg-muted/50 dark:bg-zinc-900/50 rounded-lg p-3 sm:p-4 max-h-[400px] overflow-y-auto">
                 <div className="text-sm prose prose-sm dark:prose-invert prose-headings:text-base prose-headings:font-semibold prose-headings:mt-4 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 max-w-none">
-                  <MarkdownContent content={generatedPrompt} />
+                  <MarkdownContent content={generatedPrd} />
                 </div>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleGeneratePrompt}
-                disabled={isGeneratingPrompt}
+                onClick={handleGeneratePrd}
+                disabled={isGeneratingPrd}
                 className="gap-2"
               >
-                {isGeneratingPrompt ? (
+                {isGeneratingPrd ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
                     Regenerating...

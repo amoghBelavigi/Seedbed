@@ -76,9 +76,21 @@ ${formatResults(topMarket)}
 ${hasSearchData ? `\n${searchContext}\n\nUse ONLY URLs from the search results above. NEVER invent URLs. Reference real data points from snippets when available.` : "\nNo search data available. Leave sources as empty array []."}
 
 Return ONLY this JSON (no other text):
-{"similarProjects":[{"name":"str","url":"str","description":"str","strengths":["str"]}],"feasibilityAnalysis":{"marketSize":"str","technicalComplexity":"low|medium|high","estimatedTimeToMVP":"str","challenges":["str"],"opportunities":["str"]},"differentiationSuggestions":["str"],"featureEnhancements":[{"feature":"str","description":"str","priority":"low|medium|high","estimatedEffort":"str"}],"sources":[{"title":"str","url":"str","snippet":"str"}]}
+{"similarProjects":[{"name":"str","url":"str","description":"str","strengths":["str"]}],"feasibilityAnalysis":{"marketSize":"str","technicalComplexity":"low|medium|high","estimatedTimeToMVP":"DETAILED - see rules below","challenges":["str"],"opportunities":["str"]},"differentiationSuggestions":["str"],"featureEnhancements":[{"feature":"str","description":"str","priority":"low|medium|high","estimatedEffort":"str"}],"sources":[{"title":"str","url":"str","snippet":"str"}]}
 
-3-5 similar projects, 3-5 differentiation suggestions, 3-5 feature enhancements, up to 5 sources. JSON only:`;
+3-5 similar projects, 3-5 differentiation suggestions, 3-5 feature enhancements, up to 5 sources.
+
+CRITICAL — estimatedTimeToMVP rules:
+- Assume a solo developer working full-time.
+- NEVER default to "3-6 months". Think step by step about what this specific product needs.
+- Break it down: what backend, frontend, integrations, data pipelines, third-party APIs, compliance, infrastructure?
+- Simple landing page / CRUD app: "2-4 weeks"
+- API + frontend with auth: "4-8 weeks"
+- App needing ML models, real-time, or complex integrations: "4-7 months"
+- Multi-sided platform with payments, moderation, compliance: "8-14 months"
+- Include a brief reason in the string, e.g. "4-7 months (requires ML pipeline, real-time data ingestion, and third-party API integrations)"
+
+JSON only:`;
 
     const response = await fetch(
       "https://router.huggingface.co/novita/v3/openai/chat/completions",

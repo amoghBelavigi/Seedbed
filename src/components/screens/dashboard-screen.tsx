@@ -1,6 +1,6 @@
 "use client";
 
-import { Idea, Priority, Status } from "@/lib/types";
+import { Idea, Status } from "@/lib/types";
 import { StatsCards } from "@/components/stats-cards";
 import { IdeaCard } from "@/components/idea-card";
 import { KanbanBoard } from "@/components/kanban-board";
@@ -176,15 +176,6 @@ export function DashboardScreen({
                             : "bg-muted text-muted-foreground"
                       }`}>
                         {idea.status === "in-progress" ? "In Progress" : idea.status === "completed" ? "Completed" : "Draft"}
-                      </span>
-                      <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-medium ${
-                        idea.priority === "high"
-                          ? "bg-rose-50 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"
-                          : idea.priority === "medium"
-                            ? "bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-                            : "bg-muted text-muted-foreground"
-                      }`}>
-                        {idea.priority.charAt(0).toUpperCase() + idea.priority.slice(1)}
                       </span>
                     </div>
                   </div>

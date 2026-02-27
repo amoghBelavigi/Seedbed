@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Idea, Priority, Status } from "@/lib/types";
+import { Idea, Status } from "@/lib/types";
 import { IdeaCard } from "@/components/idea-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,6 @@ import {
   Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const PRIORITY_WEIGHT: Record<Priority, number> = { high: 3, medium: 2, low: 1 };
 
 type ViewTab = "all" | "in-progress" | "completed" | "draft";
 
@@ -43,7 +41,7 @@ export function BrainBoxScreen({
   onStatusChange,
 }: BrainBoxScreenProps) {
   const [activeTab, setActiveTab] = useState<ViewTab>("all");
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "priority" | "title">("newest");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
 
   const filteredIdeas = useMemo(() => {
     let result = [...ideas];
@@ -67,9 +65,6 @@ export function BrainBoxScreen({
         break;
       case "oldest":
         result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        break;
-      case "priority":
-        result.sort((a, b) => PRIORITY_WEIGHT[b.priority] - PRIORITY_WEIGHT[a.priority]);
         break;
       case "title":
         result.sort((a, b) => a.title.localeCompare(b.title));
@@ -126,7 +121,6 @@ export function BrainBoxScreen({
           <SelectContent>
             <SelectItem value="newest" className="cursor-pointer text-xs">Newest</SelectItem>
             <SelectItem value="oldest" className="cursor-pointer text-xs">Oldest</SelectItem>
-            <SelectItem value="priority" className="cursor-pointer text-xs">Priority</SelectItem>
             <SelectItem value="title" className="cursor-pointer text-xs">Title A-Z</SelectItem>
           </SelectContent>
         </Select>

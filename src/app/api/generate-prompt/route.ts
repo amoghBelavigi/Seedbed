@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 /**
  * POST /api/generate-prompt
- * Generate a helpful prompt based on the idea and research
+ * Generate a PRD (Product Requirements Document) based on the idea and research
  */
 export async function POST(req: Request) {
   try {
@@ -39,43 +39,50 @@ RESEARCH FINDINGS:
 `;
     }
 
-    const systemPrompt = `You are an expert AI prompt engineer. Generate a well-structured prompt that the user can paste into ChatGPT, Claude, or Cursor to build their project.
+    const systemPrompt = `You are an expert product manager. Generate a comprehensive Product Requirements Document (PRD) based on the idea and research findings provided.
 
-Output ONLY the prompt text, nothing else. No explanations, no "here's your prompt", just the raw prompt.
+Output ONLY the PRD content in markdown format, nothing else. No explanations, no "here's your PRD", just the raw document.
 
-The prompt must follow this structure:
+The PRD must follow this structure:
 
-## Project Overview
-[One paragraph describing the app/product]
+## Product Overview
+[What the product is and the problem it solves — 2-3 sentences]
 
-## Tech Stack
-[List recommended technologies]
+## Goals & Objectives
+[What success looks like — 3-5 bullet points]
+
+## Target Audience
+[Who it's for — primary and secondary audiences]
 
 ## Core Features (MVP)
-[Numbered list of 4-6 essential features]
+[Basic features needed to launch — numbered list of 4-6 essential features with brief descriptions]
 
-## User Flow
-[Brief description of main user journey]
+## Enhanced Features
+[Suggested features from research, each with priority (High/Medium/Low) and estimated effort]
 
-## Key Differentiators
-[What makes this unique based on research]
+## User Stories
+[Key user flows written as "As a [user], I want to [action], so that [benefit]" — 4-6 stories]
 
-## Constraints
-[Important technical or business constraints]
+## Technical Considerations
+[Complexity, constraints, recommended tech stack, time to MVP estimate]
 
-## First Steps
-[What to build first]
+## Competitive Landscape
+[Summary of similar projects and their strengths/weaknesses]
 
-Start the prompt with: "I want to build [project name]. Help me create..."`;
+## Differentiation Strategy
+[How this product stands out from competitors — 3-5 concrete strategies]
 
-    const userPrompt = `Generate a structured AI coding prompt for:
+## Success Metrics
+[KPIs to track — 4-6 measurable metrics]`;
+
+    const userPrompt = `Generate a Product Requirements Document (PRD) for:
 
 IDEA: ${title}
 ${researchContext}
 
-Create a detailed, copy-paste ready prompt following the exact structure specified. Make it specific and actionable.`;
+Create a detailed, comprehensive PRD following the exact structure specified. Make it specific, actionable, and grounded in the research findings.`;
 
-    console.log("🪄 Generating prompt for:", title);
+    console.log("📋 Generating PRD for:", title);
 
     const response = await fetch(
       "https://router.huggingface.co/novita/v3/openai/chat/completions",
@@ -91,7 +98,7 @@ Create a detailed, copy-paste ready prompt following the exact structure specifi
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
           ],
-          max_tokens: 1000,
+          max_tokens: 2000,
           temperature: 0.7,
         }),
       }
@@ -99,40 +106,39 @@ Create a detailed, copy-paste ready prompt following the exact structure specifi
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Generate prompt API error:", errorText);
+      console.error("Generate PRD API error:", errorText);
       throw new Error(`API request failed: ${response.status}`);
     }
 
     const data = await response.json();
-    let generatedPrompt = data.choices?.[0]?.message?.content;
+    let generatedPrd = data.choices?.[0]?.message?.content;
 
-    if (!generatedPrompt) {
+    if (!generatedPrd) {
       throw new Error("No response from AI");
     }
 
     // Clean up DeepSeek's thinking tags and extra content
-    generatedPrompt = generatedPrompt
+    generatedPrd = generatedPrd
       .replace(/<think>[\s\S]*?<\/think>/gi, "")
       .replace(/^(Here's|Here is|I've created|This is).*?:\s*/i, "")
-      .replace(/\*\*Why this prompt works[\s\S]*/gi, "")
       .replace(/---+\s*$/g, "")
       .replace(/^[\s\n]+/, "")
       .trim();
 
-    console.log("✅ Prompt generated successfully");
+    console.log("✅ PRD generated successfully");
 
     return NextResponse.json({
       success: true,
-      prompt: generatedPrompt,
+      prd: generatedPrd,
     });
 
   } catch (error) {
-    console.error("❌ Generate prompt error:", error);
+    console.error("❌ Generate PRD error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to generate prompt",
+        error: error instanceof Error ? error.message : "Failed to generate PRD",
       },
       { status: 500 }
     );

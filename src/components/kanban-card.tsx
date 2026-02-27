@@ -1,7 +1,6 @@
 "use client";
 
 import { Idea } from "@/lib/types";
-import { getPriorityConfig } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -40,14 +39,6 @@ interface KanbanCardProps {
 }
 
 export function KanbanCard({ idea, index, onEdit, onDelete }: KanbanCardProps) {
-  const priorityConfig = getPriorityConfig(idea.priority);
-
-  const priorityDot = {
-    low: "bg-slate-400",
-    medium: "bg-amber-500",
-    high: "bg-rose-500",
-  };
-
   return (
     <Draggable draggableId={idea.id} index={index}>
       {(provided, snapshot) => (
@@ -67,10 +58,7 @@ export function KanbanCard({ idea, index, onEdit, onDelete }: KanbanCardProps) {
             >
               <GripVertical className="h-3.5 w-3.5" />
             </div>
-            <div className={`h-2 w-2 rounded-full ${priorityDot[idea.priority]}`} />
-            <span className="flex-1 text-[11px] font-medium text-muted-foreground">
-              {priorityConfig.label}
-            </span>
+            <span className="flex-1" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
